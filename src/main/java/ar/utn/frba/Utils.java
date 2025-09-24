@@ -3,6 +3,7 @@ package ar.utn.frba;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.apache.commons.math3.distribution.WeibullDistribution;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Objects;
 import java.util.Random;
@@ -27,7 +28,9 @@ public class Utils {
         return chi.inverseCumulativeProbability(r) * scale + loc;
     }
 
-    // === Función con Fatigue Life ===
+    /*
+     * getIa() -> double (seg)
+     * */
     public static Double getIA() {
         // Parámetros ajustados
         double c = 0.9832892843344954;
@@ -45,11 +48,13 @@ public class Utils {
         return dist.inverseCumulativeProbability(r) + loc_param;
     }
 
-    public static int getMenorTps(LocalTime[] tps) {
+    public static int getMenorTps(LocalDateTime[] tps) {
         int indice = 0;
         for (int i = 0; i < tps.length; i++) {
-            if (tps[i] == null || tps[i].isBefore(tps[indice])) {
-                indice = i;
+            if (tps[indice] != null) {
+                if (tps[i] == null || tps[i].isBefore(tps[indice])) {
+                    indice = i;
+                }
             }
         }
         return indice;
@@ -68,19 +73,19 @@ public class Utils {
     }
 
     public static void updateJuniorTps(Variables var, int index, double value) {
-        updateTps(var.getEstado().getTpsJr(), index, value, var.getT().toLocalTime());
+        updateTps(var.getEstado().getTpsJr(), index, value, var.getT());
     }
 
     public static void updateSemiSeniorTps(Variables var, int index, double value) {
-        updateTps(var.getEstado().getTpsSsr(), index, value, var.getT().toLocalTime());
+        updateTps(var.getEstado().getTpsSsr(), index, value, var.getT());
     }
 
     public static void updateSeniorTps(Variables var, int index, double value) {
-        updateTps(var.getEstado().getTpsSr(), index, value, var.getT().toLocalTime());
+        updateTps(var.getEstado().getTpsSr(), index, value, var.getT());
     }
 
 
-    private static void updateTps(LocalTime[] tps, int index, double value, LocalTime t) {
+    private static void updateTps(LocalDateTime[] tps, int index, double value, LocalDateTime t) {
         if (tps[index] == null) {
             tps[index] = t.plusSeconds(Math.round(value * 60.0));
         } else {
@@ -88,10 +93,10 @@ public class Utils {
         }
     }
 
-    private static Integer getPuestoLibre(LocalTime[] tps) {
+    private static Integer getPuestoLibre(LocalDateTime[] tps) {
         Integer index = null;
         for (int i = 0; i < tps.length; i++) {
-            LocalTime tp = tps[i];
+            LocalDateTime tp = tps[i];
             if (Objects.isNull(tp)) {
                 index = i;
             }

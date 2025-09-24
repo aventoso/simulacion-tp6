@@ -1,0 +1,14 @@
+<configuration>
+    <!-- Appender: consola -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- formato: fecha nivel [hilo] clase - mensaje -->
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss}] %-5level [%thread] %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Nivel global para todas las clases -->
+    <root level="DEBUG">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>
