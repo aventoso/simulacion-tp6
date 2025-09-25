@@ -7,6 +7,7 @@ import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -62,14 +63,16 @@ public class Variables {
         private Double ctt = 0.0;
 
 
-        public Map<String, Double> calculateTPEC() {
+        public Map<String, String> calculateTPEC() {
 
-            Map<String, Double> resultado = new HashMap<>();
+            Map<String, String> resultado = new HashMap<>();
 
-            resultado.put("Tiempo promedio de espera en cola de BAJOS", (stsB - staB) / cttb);
-            resultado.put("Tiempo promedio de espera en cola de MEDIOS", (stsM - staM) / cttm);
-            resultado.put("Tiempo promedio de espera en cola de ALTOS", (stsA - staA) / ctta);
-            resultado.put("Tiempo promedio de espera en cola de CRITICOS", (stsC - staC) / cttc);
+            DecimalFormat df = new DecimalFormat("#0.00");
+
+            resultado.put("Tiempo promedio de espera en cola de BAJOS", df.format((stsB - staB) / cttb));
+            resultado.put("Tiempo promedio de espera en cola de MEDIOS", df.format((stsM - staM) / cttm));
+            resultado.put("Tiempo promedio de espera en cola de ALTOS", df.format((stsA - staA) / ctta));
+            resultado.put("Tiempo promedio de espera en cola de CRITICOS", df.format((stsC - staC) / cttc));
 
             return resultado;
         }
@@ -79,9 +82,11 @@ public class Variables {
             Map<String, String> resultado = new HashMap<>();
 
             resultado.put("Porcentaje de tickets resueltos por junior", getPorcentajeFormat((crJr / ctt) * 100, 5));
-            resultado.put("Porcentaje de tickets resueltos por semi senior", getPorcentajeFormat((crSsr / ctt) * 100, 5));
+            resultado.put("Porcentaje de tickets resueltos por semi senior",
+                    getPorcentajeFormat((crSsr / ctt) * 100, 5));
             resultado.put("Porcentaje de tickets resueltos por senior", getPorcentajeFormat((crSr / ctt) * 100, 5));
-            resultado.put("Porcentaje de tickets pendientes de resolucion", getPorcentajeFormat(((ctt - crJr - crSsr - crSr) / ctt) * 100, 5));
+            resultado.put("Porcentaje de tickets pendientes de resolucion",
+                    getPorcentajeFormat(((ctt - crJr - crSsr - crSr) / ctt) * 100, 5));
 
             return resultado;
         }
@@ -124,22 +129,22 @@ public class Variables {
         }
 
         public void addStsB(LocalDateTime t2, LocalDateTime eventoFuturo2, Integer ctb) {
-            long diferenciaMinutos = Math.abs(Duration.between(t2,eventoFuturo2).toMinutes());
+            long diferenciaMinutos = Math.abs(Duration.between(t2, eventoFuturo2).toMinutes());
             this.stsB = this.stsB + (diferenciaMinutos * ctb);
         }
 
         public void addStsM(LocalDateTime t2, LocalDateTime eventoFuturo2, Integer ctm) {
-            long diferenciaMinutos = Math.abs(Duration.between(t2,eventoFuturo2).toMinutes());
+            long diferenciaMinutos = Math.abs(Duration.between(t2, eventoFuturo2).toMinutes());
             this.stsM = this.stsM + (diferenciaMinutos * ctm);
         }
 
         public void addStsA(LocalDateTime t2, LocalDateTime eventoFuturo2, Integer cta) {
-            long diferenciaMinutos = Math.abs(Duration.between(t2,eventoFuturo2).toMinutes());
+            long diferenciaMinutos = Math.abs(Duration.between(t2, eventoFuturo2).toMinutes());
             this.stsA = this.stsA + (diferenciaMinutos * cta);
         }
 
         public void addStsC(LocalDateTime t2, LocalDateTime eventoFuturo2, Integer ctc) {
-            long diferenciaMinutos = Math.abs(Duration.between(t2,eventoFuturo2).toMinutes());
+            long diferenciaMinutos = Math.abs(Duration.between(t2, eventoFuturo2).toMinutes());
             this.stsC = this.stsC + (diferenciaMinutos * ctc);
         }
 
