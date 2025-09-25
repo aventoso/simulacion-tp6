@@ -24,9 +24,9 @@ public class Variables {
     private LocalDateTime tpll = LocalDateTime.of(2025, 1, 1, 9, 0, 0);
 
 
-    private int i;
-    private int j;
-    private int k;
+    private Integer i;
+    private Integer j;
+    private Integer k;
 
     public Variables(Estado estado, Control control, Resultado resultado) {
         this.estado = estado;
@@ -37,20 +37,24 @@ public class Variables {
     @Getter
     @Setter
     public static class Resultado {
+        /*STSx -> acumulador tiempos de permanencia en sistema*/
         private Double stsB = 0.0; // -> minutos
         private Double stsM = 0.0;
         private Double stsA = 0.0;
         private Double stsC = 0.0;
 
+        /*STA<x -> acumulador tiempos de atencion en sistema*/
         private Double staB = 0.0; // -> minutos
         private Double staM = 0.0;
         private Double staA = 0.0;
         private Double staC = 0.0;
 
+        /*CRx -> cantidad de tickets resueltos por senority*/
         private Integer crJr = 0;
         private Integer crSsr = 0;
         private Integer crSr = 0;
 
+        /*CTTx -> cantidad total de tickets por senority*/
         private Double cttb = 0.0;
         private Double cttm = 0.0;
         private Double ctta = 0.0;

@@ -61,6 +61,20 @@ public class Utils {
         return indice;
     }
 
+    public static Integer getMenorTpsIgnorandoNulls(LocalDateTime[] tps) {
+        Integer indiceMenor = null;
+
+        for (int i = 0; i < tps.length; i++) {
+            if (tps[i] != null) {
+                if (indiceMenor == null || tps[i].isBefore(tps[indiceMenor])) {
+                    indiceMenor = i;
+                }
+            }
+        }
+
+        return indiceMenor; // si no encontró ninguno, retorna null
+    }
+
     public static Integer getSeniorDisponible(Variables var) {
         return getPuestoLibre(var.getEstado().getTpsSr());
     }
