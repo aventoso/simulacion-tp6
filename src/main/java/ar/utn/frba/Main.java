@@ -22,7 +22,7 @@ public class Main {
 
         Scanner scanner = new Scanner(System.in);
 
-        LOGGER.info("La simulación arranca el día 01/01/2025 a las 9:00 hrs");
+        LOGGER.info("La simulación arranca el día 2025/01/01 a las 9:00 hrs");
         LOGGER.info("Ingrese el tiempo de finalización (formato: 2025/04/01 19:30): ");
         String tiempoFinalStr = "2025/04/01 19:30";
 
@@ -65,14 +65,15 @@ public class Main {
                 Objects.nonNull(variables.getEstado().getTpsSsr()[j]) &&
                 (variables.getEstado().getTpsJr()[i].isBefore(variables.getEstado().getTpsSsr()[j]) ||
                  variables.getEstado().getTpsJr()[i].equals(variables.getEstado().getTpsSsr()[j]))) {
-                if (Objects.nonNull(variables.getEstado().getTpsJr()[i]) && Objects.nonNull(variables.getEstado().getTpsSr()[k]) &&
-                    (variables.getEstado().getTpsJr()[i].isBefore(variables.getEstado().getTpsSr()[k]) ||
+                if (Objects.nonNull(variables.getEstado().getTpsJr()[i]) &&
+                    Objects.nonNull(variables.getEstado().getTpsSr()[k]) &&
+                    (variables.getEstado().getTpsJr()[i].isBefore(variables.getEstado().getTpsSsr()[j]) ||
                      variables.getEstado().getTpsJr()[i].equals(variables.getEstado().getTpsSr()[k]))) {
                     if (Objects.nonNull(variables.getEstado().getTpsJr()[i]) &&
                         (variables.getEstado().getTpsJr()[i].isBefore(variables.getTpll()) ||
                          variables.getEstado().getTpsJr()[i].equals(variables.getTpll()))) {
-                        // Salida Junion
-                        procesarSalidaJunior(variables);
+                        // Salida Junior
+                        procesarSalidaJunior(variables, i);
                     } else {
                         procesarLlegada(variables);
                     }
@@ -80,7 +81,7 @@ public class Main {
                            (variables.getEstado().getTpsSsr()[j].isBefore(variables.getTpll()) ||
                             variables.getEstado().getTpsSsr()[j].equals(variables.getTpll()))) {
                     // salida ssr
-                    procesarSalidaSemiSenior(variables);
+                    procesarSalidaSemiSenior(variables, j);
                 } else {
                     procesarLlegada(variables);
                 }
@@ -92,7 +93,7 @@ public class Main {
                 if (Objects.nonNull(variables.getEstado().getTpsSsr()[j]) &&
                     (variables.getEstado().getTpsSsr()[j].isBefore(variables.getTpll()))) {
                     // salida ssr
-                    procesarSalidaSemiSenior(variables);
+                    procesarSalidaSemiSenior(variables, j);
                 } else {
                     procesarLlegada(variables);
                 }
@@ -100,7 +101,7 @@ public class Main {
                        (variables.getEstado().getTpsSr()[k].isBefore(variables.getTpll()) ||
                         variables.getEstado().getTpsSr()[k].equals(variables.getTpll()))) {
                 // salida senior
-                procesarSalidaSenior(variables);
+                procesarSalidaSenior(variables, k);
             } else {
                 // llegada
                 procesarLlegada(variables);
@@ -112,11 +113,19 @@ public class Main {
 
         // Resultados finales (placeholders porque en tu código Python estaban incompletos)
         LOGGER.info("\n=== Resultados ===");
-        LOGGER.info("Iteraciones: {}",iteraciones);
-        LOGGER.info("PTB: {}", (variables.getResultado().getCttb() /  variables.getResultado().getCtt()) * 100);
-        LOGGER.info("PTM: {}", (variables.getResultado().getCttm() /  variables.getResultado().getCtt()) * 100);
-        LOGGER.info("PTA: {}", (variables.getResultado().getCtta() /  variables.getResultado().getCtt()) * 100);
-        LOGGER.info("PTC: {}", (variables.getResultado().getCttc() /  variables.getResultado().getCtt()) * 100);
+        LOGGER.info("Iteraciones: {}", iteraciones);
+        LOGGER.info("Fecha de inicio: {}", "2025-01-01T9:00:00");
+        LOGGER.info("Fecha de finalizacion: {}", variables.getT().toString());
+
+        variables.getResultado().calculateCTR().forEach((etiqueta, valor) -> {
+            LOGGER.info("{} -> {}", etiqueta, valor);
+        });
+        variables.getResultado().calculateDTC().forEach((etiqueta, valor) -> {
+            LOGGER.info("{} -> {}", etiqueta, valor);
+        });
+        variables.getResultado().calculateTPEC().forEach((etiqueta, valor) -> {
+            LOGGER.info("{} -> {}", etiqueta, valor);
+        });
 
 
         scanner.close();
@@ -125,34 +134,35 @@ public class Main {
     private static void procesarLlegada(Variables var) {
         LocalDateTime tAux = var.getT();
         LocalDateTime tpllAux = var.getTpll();
-        var.getResultado().setCtt(var.getResultado().getCtt() + 1);
 
         var.setT(var.getTpll());
         double ia = getIA();
-        var.setTpll(var.getT().plusSeconds(Math.round(ia * 60.0)));
+        var.setTpll(var.getT().plusMinutes(Math.round(ia)));
         double r = Math.random();
-
-        var.setCantidadTotalTickets(var.getCantidadTotalTickets() + 1);
+        var.getResultado().setCtt(var.getResultado().getCtt() + 1);
 
         if (r < 0.2) {
             //criticidad baja
-            //var.getResultado().setStsB()
-            var.getEstado().bPlus();
+            var.getResultado().addStsB(tAux, tpllAux, var.getEstado().getCtb());
+            var.getEstado().bajosEncoladosPlus();
+            var.getEstado().setCtb(var.getEstado().getCtb() + 1);
             var.getResultado().setCttb(var.getResultado().getCttb() + 1);
 
             Integer indexJunior = getJuniorDisponible(var);
 
             if (Objects.nonNull(indexJunior)) {
-                var.getEstado().bMinus();
+                var.getEstado().getJuniorAtendiendo()[indexJunior] = "B";
+                var.getEstado().bajosEncoladosMinus();
                 double ta = getTA();
                 ta = ta * 1.5;
                 updateJuniorTps(var, indexJunior, ta);
                 var.getResultado().addStaB(ta);
                 var.getResultado().setCrJr(var.getResultado().getCrJr() + 1);
             } else {
-                Integer indexSemiSenior = getJuniorDisponible(var);
+                Integer indexSemiSenior = getSemiSeniorDisponible(var);
                 if (Objects.nonNull(indexSemiSenior)) {
-                    var.getEstado().bMinus();
+                    var.getEstado().getSemiSeniorAtendiendo()[indexSemiSenior] = "B";
+                    var.getEstado().bajosEncoladosMinus();
                     double ta = getTA();
                     updateSemiSeniorTps(var, indexSemiSenior, ta);
                     var.getResultado().addStaB(ta);
@@ -160,13 +170,15 @@ public class Main {
                 } else {
                     Integer indexSenior = getSeniorDisponible(var);
                     if (Objects.nonNull(indexSenior) && var.getEstado().getBajosEncolados() >= 2) {
-                        var.getEstado().bMinus();
-                        var.getEstado().bMinus();
+                        var.getEstado().getSeniorAtendiendo()[indexSenior] = "B";
+                        var.getEstado().bajosEncoladosMinus();
+                        var.getEstado().bajosEncoladosMinus();
                         double ta = getTA();
                         double ta2 = getTA();
-                        double tat = (ta + ta2) * 1.4;
+                        double tat = (ta + ta2) * 0.7;
                         updateSeniorTps(var, indexSenior, tat);
                         var.getResultado().addStaB(tat);
+                        var.getResultado().setCrSr(var.getResultado().getCrSr() + 1);
                         var.getResultado().setCrSr(var.getResultado().getCrSr() + 1);
 
                     }
@@ -175,14 +187,17 @@ public class Main {
             }
         } else if (r < 0.5) {
             //medios
-            var.getEstado().mPlus();
+            var.getResultado().addStsM(tAux, tpllAux, var.getEstado().getCtm());
+            var.getEstado().mediosEncoladosPlus();
             var.getResultado().setCttm(var.getResultado().getCttm() + 1);
+            var.getEstado().setCtm(var.getEstado().getCtm() + 1);
 
 
             Integer indexJunior = getJuniorDisponible(var);
 
             if (Objects.nonNull(indexJunior)) {
-                var.getEstado().mMinus();
+                var.getEstado().getJuniorAtendiendo()[indexJunior] = "M";
+                var.getEstado().mediosEncoladosMinus();
                 double ta = getTA();
                 ta = ta * 1.5;
                 updateJuniorTps(var, indexJunior, ta);
@@ -191,7 +206,8 @@ public class Main {
             } else {
                 Integer indexSemiSenior = getSemiSeniorDisponible(var);
                 if (Objects.nonNull(indexSemiSenior)) {
-                    var.getEstado().mMinus();
+                    var.getEstado().getSemiSeniorAtendiendo()[indexSemiSenior] = "M";
+                    var.getEstado().mediosEncoladosMinus();
                     double ta = getTA();
                     updateSemiSeniorTps(var, indexSemiSenior, ta);
                     var.getResultado().addStaM(ta);
@@ -199,7 +215,8 @@ public class Main {
                 } else {
                     Integer indexSenior = getSeniorDisponible(var);
                     if (Objects.nonNull(indexSenior)) {
-                        var.getEstado().mMinus();
+                        var.getEstado().getSeniorAtendiendo()[indexSenior] = "M";
+                        var.getEstado().mediosEncoladosMinus();
                         double ta = getTA();
                         ta = ta * 0.7;
                         updateSeniorTps(var, indexSenior, ta);
@@ -212,14 +229,17 @@ public class Main {
             }
         } else if (r < 0.8) {
             // llega alto
-            var.getEstado().aPlus();
+            var.getResultado().addStsA(tAux, tpllAux, var.getEstado().getCta());
+            var.getEstado().altosEncoladosPlus();
             var.getResultado().setCtta(var.getResultado().getCtta() + 1);
+            var.getEstado().setCta(var.getEstado().getCta() + 1);
 
 
             Integer indexSSenior = getSemiSeniorDisponible(var);
 
             if (Objects.nonNull(indexSSenior)) {
-                var.getEstado().aMinus();
+                var.getEstado().getSemiSeniorAtendiendo()[indexSSenior] = "A";
+                var.getEstado().altosEncoladosMinus();
                 double ta = getTA();
                 updateSemiSeniorTps(var, indexSSenior, ta);
                 var.getResultado().addStaA(ta);
@@ -227,7 +247,8 @@ public class Main {
             } else {
                 Integer indexSenior = getSeniorDisponible(var);
                 if (Objects.nonNull(indexSenior)) {
-                    var.getEstado().aMinus();
+                    var.getEstado().getSeniorAtendiendo()[indexSenior] = "A";
+                    var.getEstado().altosEncoladosMinus();
                     double ta = getTA();
                     ta = ta * 0.7;
                     updateSeniorTps(var, indexSenior, ta);
@@ -237,13 +258,16 @@ public class Main {
             }
         } else {
             //llega critico
-            var.getEstado().cPlus();
+            var.getResultado().addStsC(tAux, tpllAux, var.getEstado().getCtc());
+            var.getEstado().criticosEncoladosPlus();
             var.getResultado().setCttc(var.getResultado().getCttc() + 1);
+            var.getEstado().setCtc(var.getEstado().getCtc() + 1);
 
             Integer index = getSeniorDisponible(var);
 
             if (Objects.nonNull(index)) {
-                var.getEstado().cMinus();
+                var.getEstado().getSeniorAtendiendo()[index] = "C";
+                var.getEstado().criticosEncoladosMinus();
                 double ta = getTA();
                 ta = ta * 0.7;
                 updateSeniorTps(var, index, ta);
@@ -254,16 +278,32 @@ public class Main {
 
     }
 
-    private static void procesarSalidaJunior(Variables var) {
+    private static void procesarSalidaJunior(Variables var, Integer index) {
+        LocalDateTime tAux = var.getT();
+        LocalDateTime tpsAux = var.getEstado().getTpsJr()[var.getI()];
+
         var.setT(var.getEstado().getTpsJr()[var.getI()]);
+        var.getResultado().setCrJr(var.getResultado().getCrJr() + 1);
+
+        String ca = var.getEstado().getJuniorAtendiendo()[index];
+
+        if (ca.equalsIgnoreCase("M")) {
+            var.getResultado().addStsM(tpsAux, tAux, var.getEstado().getCtm());
+            var.getEstado().setCtm(var.getEstado().getCtm() - 1);
+        } else {
+            var.getResultado().addStsB(tpsAux, tAux, var.getEstado().getCtb());
+            var.getEstado().setCtb(var.getEstado().getCtb() - 1);
+        }
+
         if (var.getEstado().getMediosEncolados() >= 1) {
-            var.getEstado().mMinus();
+            var.getEstado().mediosEncoladosMinus();
             double ta = getTA();
             ta = ta * 1.5;
             updateJuniorTps(var, var.getI(), ta);
             var.getResultado().addStaM(ta);
         } else if (var.getEstado().getBajosEncolados() >= 1) {
-            var.getEstado().bMinus();
+
+            var.getEstado().bajosEncoladosMinus();
             double ta = getTA();
             ta = ta * 1.5;
             updateJuniorTps(var, var.getI(), ta);
@@ -273,20 +313,44 @@ public class Main {
         }
     }
 
-    private static void procesarSalidaSemiSenior(Variables var) {
+    private static void procesarSalidaSemiSenior(Variables var, Integer index) {
+        LocalDateTime tAux = var.getT();
+        LocalDateTime tpsAux = var.getEstado().getTpsSsr()[var.getJ()];
+
         var.setT(var.getEstado().getTpsSsr()[var.getJ()]);
+        var.getResultado().setCrSsr(var.getResultado().getCrSsr() + 1);
+
+        String ca = var.getEstado().getSemiSeniorAtendiendo()[index];
+
+        if (ca.equalsIgnoreCase("A")) {
+            var.getResultado().addStsA(tpsAux, tAux, var.getEstado().getCta());
+            var.getEstado().setCta(var.getEstado().getCta() - 1);
+        } else if (ca.equalsIgnoreCase("M")) {
+            var.getResultado().addStsM(tpsAux, tAux, var.getEstado().getCtm());
+            var.getEstado().setCtm(var.getEstado().getCtm() - 1);
+        } else {
+            var.getResultado().addStsB(tpsAux, tAux, var.getEstado().getCtb());
+            var.getEstado().setCtb(var.getEstado().getCtb() - 1);
+        }
+
+
         if (var.getEstado().getAltosEncolados() >= 1) {
-            var.getEstado().aMinus();
+
+            var.getEstado().altosEncoladosMinus();
             double ta = getTA();
             updateSemiSeniorTps(var, var.getJ(), ta);
             var.getResultado().addStaA(ta);
         } else if (var.getEstado().getMediosEncolados() >= 1) {
-            var.getEstado().mMinus();
+
+
+            var.getEstado().mediosEncoladosMinus();
             double ta = getTA();
             updateSemiSeniorTps(var, var.getJ(), ta);
             var.getResultado().addStaM(ta);
         } else if (var.getEstado().getBajosEncolados() >= 1) {
-            var.getEstado().bMinus();
+
+
+            var.getEstado().bajosEncoladosMinus();
             double ta = getTA();
             updateSemiSeniorTps(var, var.getJ(), ta);
             var.getResultado().addStaB(ta);
@@ -295,30 +359,57 @@ public class Main {
         }
     }
 
-    private static void procesarSalidaSenior(Variables var) {
+    private static void procesarSalidaSenior(Variables var, Integer index) {
+        LocalDateTime tAux = var.getT();
+        LocalDateTime tpsAux = var.getEstado().getTpsSr()[var.getK()];
+
         var.setT(var.getEstado().getTpsSr()[var.getK()]);
+        var.getResultado().setCrSr(var.getResultado().getCrSr() + 1);
+
+        String ca = var.getEstado().getSeniorAtendiendo()[index];
+
+        if (ca.equalsIgnoreCase("C")) {
+            var.getResultado().addStsC(tpsAux, tAux, var.getEstado().getCtc());
+            var.getEstado().setCtc(var.getEstado().getCtc() - 1);
+        } else if (ca.equalsIgnoreCase("A")) {
+            var.getResultado().addStsA(tpsAux, tAux, var.getEstado().getCta());
+            var.getEstado().setCta(var.getEstado().getCta() - 1);
+        } else if (ca.equalsIgnoreCase("M")) {
+            var.getResultado().addStsM(tpsAux, tAux, var.getEstado().getCtm());
+            var.getEstado().setCtm(var.getEstado().getCtm() - 1);
+        } else {
+            var.getResultado().addStsB(tpsAux, tAux, var.getEstado().getCtb());
+            var.getEstado().setCtb(var.getEstado().getCtb() - 2);
+        }
+
+
         if (var.getEstado().getCriticosEncolados() >= 1) {
-            var.getEstado().cMinus();
+            var.getEstado().criticosEncoladosMinus();
             double ta = getTA();
             ta = ta * 0.7;
             updateSeniorTps(var, var.getK(), ta);
             var.getResultado().addStaC(ta);
         } else if (var.getEstado().getAltosEncolados() >= 1) {
-            var.getEstado().aMinus();
+
+            var.getEstado().altosEncoladosMinus();
             double ta = getTA();
             ta = ta * 0.7;
             updateSeniorTps(var, var.getK(), ta);
             var.getResultado().addStaA(ta);
         } else if (var.getEstado().getMediosEncolados() >= 1) {
-            var.getEstado().mMinus();
+
+            var.getEstado().mediosEncoladosMinus();
             double ta = getTA();
             ta = ta * 0.7;
             updateSeniorTps(var, var.getK(), ta);
             var.getResultado().addStaM(ta);
-        } else if (var.getEstado().getBajosEncolados() >= 1) {
-            var.getEstado().bMinus();
+        } else if (var.getEstado().getBajosEncolados() >= 2) {
+
+            var.getEstado().bajosEncoladosMinus();
+            var.getEstado().bajosEncoladosMinus();
             double ta = getTA();
-            ta = ta * 0.7;
+            double ta2 = getTA();
+            ta = (ta + ta2) * 0.7;
             updateSeniorTps(var, var.getK(), ta);
             var.getResultado().addStaB(ta);
         } else {

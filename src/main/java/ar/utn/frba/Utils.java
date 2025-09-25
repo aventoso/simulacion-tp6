@@ -4,13 +4,14 @@ import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.apache.commons.math3.distribution.WeibullDistribution;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.Objects;
 import java.util.Random;
 
 public class Utils {
 
-    // === Función con Chi² ===
+    /*
+     * getTa() -> double (min)
+     * */
     public static Double getTA() {
         // Parámetros ajustados
         double df = 0.5518296905342877;
@@ -29,7 +30,7 @@ public class Utils {
     }
 
     /*
-     * getIa() -> double (seg)
+     * getIa() -> double (min)
      * */
     public static Double getIA() {
         // Parámetros ajustados
@@ -87,9 +88,9 @@ public class Utils {
 
     private static void updateTps(LocalDateTime[] tps, int index, double value, LocalDateTime t) {
         if (tps[index] == null) {
-            tps[index] = t.plusSeconds(Math.round(value * 60.0));
+            tps[index] = t.plusMinutes(Math.round(value));
         } else {
-            tps[index] = tps[index].plusSeconds(Math.round(value * 60.0));
+            tps[index] = tps[index].plusMinutes(Math.round(value));
         }
     }
 
