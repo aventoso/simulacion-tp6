@@ -49,8 +49,6 @@ public class Main {
         Variables variables = new Variables(estado, control, resultado);
 
         int iteraciones = 0;
-        boolean vaciamiento = false;
-
         // Loop principal
         while (variables.getT().isBefore(tiempoFinal)) {
             iteraciones++;
@@ -106,45 +104,6 @@ public class Main {
             } else {
                 // llegada
                 procesarLlegada(variables);
-            }
-
-            LOGGER.info(variables.getEstado().toString());
-        }
-
-        while (variables.getEstado().getCtb() != 0 || variables.getEstado().getCtm() != 0 ||
-               variables.getEstado().getCta() != 0 || variables.getEstado().getCtc() != 0) {
-
-            iteraciones++;
-
-            Integer i = getMenorTpsIgnorandoNulls(variables.getEstado().getTpsJr());
-            Integer j = getMenorTpsIgnorandoNulls(variables.getEstado().getTpsSsr());
-            Integer k = getMenorTpsIgnorandoNulls(variables.getEstado().getTpsSr());
-
-            variables.setI(i);
-            variables.setJ(j);
-            variables.setK(k);
-
-            // Obtener los tiempos correspondientes
-            LocalDateTime tI = (i != null) ? variables.getEstado().getTpsJr()[i] : null;
-            LocalDateTime tJ = (j != null) ? variables.getEstado().getTpsSsr()[j] : null;
-            LocalDateTime tK = (k != null) ? variables.getEstado().getTpsSr()[k] : null;
-
-            // Inicializamos menorTiempo con el más pequeño de los tres (no nulos)
-            LocalDateTime menorTiempo = null;
-            if (tI != null)
-                menorTiempo = tI;
-            if (tJ != null && (menorTiempo == null || tJ.isBefore(menorTiempo)))
-                menorTiempo = tJ;
-            if (tK != null && (menorTiempo == null || tK.isBefore(menorTiempo)))
-                menorTiempo = tK;
-
-            // Ejecutar la acción según cuál es el menor
-            if (tI != null && tI.equals(menorTiempo)) {
-                procesarSalidaJunior(variables, i);
-            } else if (tJ != null && tJ.equals(menorTiempo)) {
-                procesarSalidaSemiSenior(variables, j);
-            } else if (tK != null && tK.equals(menorTiempo)) {
-                procesarSalidaSenior(variables, k);
             }
 
             LOGGER.info(variables.getEstado().toString());
