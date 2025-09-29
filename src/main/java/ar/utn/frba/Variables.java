@@ -69,10 +69,10 @@ public class Variables {
 
             DecimalFormat df = new DecimalFormat("#0.00");
 
-            resultado.put("Tiempo promedio de espera en cola de BAJOS", df.format((stsB - staB) / cttb));
-            resultado.put("Tiempo promedio de espera en cola de MEDIOS", df.format((stsM - staM) / cttm));
-            resultado.put("Tiempo promedio de espera en cola de ALTOS", df.format((stsA - staA) / ctta));
-            resultado.put("Tiempo promedio de espera en cola de CRITICOS", df.format((stsC - staC) / cttc));
+            resultado.put("Tiempo promedio de espera en cola de BAJOS", df.format((stsB - staB) / cttb)+ " minutos");
+            resultado.put("Tiempo promedio de espera en cola de MEDIOS", df.format((stsM - staM) / cttm)+ " minutos");
+            resultado.put("Tiempo promedio de espera en cola de ALTOS", df.format((stsA - staA) / ctta)+ " minutos");
+            resultado.put("Tiempo promedio de espera en cola de CRITICOS", df.format((stsC - staC) / cttc) + " minutos");
 
             return resultado;
         }
@@ -128,23 +128,24 @@ public class Variables {
             staC = staC + ta;
         }
 
+        /*ajustar sts, simepre hay que recalcular todos */
         public void addStsB(LocalDateTime t2, LocalDateTime eventoFuturo2, Integer ctb) {
-            long diferenciaMinutos = Math.abs(Duration.between(t2, eventoFuturo2).toMinutes());
+            long diferenciaMinutos = Duration.between(eventoFuturo2, t2).toMinutes();
             this.stsB = this.stsB + (diferenciaMinutos * ctb);
         }
 
         public void addStsM(LocalDateTime t2, LocalDateTime eventoFuturo2, Integer ctm) {
-            long diferenciaMinutos = Math.abs(Duration.between(t2, eventoFuturo2).toMinutes());
+            long diferenciaMinutos = Duration.between(eventoFuturo2, t2).toMinutes();
             this.stsM = this.stsM + (diferenciaMinutos * ctm);
         }
 
         public void addStsA(LocalDateTime t2, LocalDateTime eventoFuturo2, Integer cta) {
-            long diferenciaMinutos = Math.abs(Duration.between(t2, eventoFuturo2).toMinutes());
+            long diferenciaMinutos = Duration.between(eventoFuturo2, t2).toMinutes();
             this.stsA = this.stsA + (diferenciaMinutos * cta);
         }
 
         public void addStsC(LocalDateTime t2, LocalDateTime eventoFuturo2, Integer ctc) {
-            long diferenciaMinutos = Math.abs(Duration.between(t2, eventoFuturo2).toMinutes());
+            long diferenciaMinutos =Duration.between(eventoFuturo2, t2).toMinutes();
             this.stsC = this.stsC + (diferenciaMinutos * ctc);
         }
 
@@ -156,9 +157,9 @@ public class Variables {
     @AllArgsConstructor
     @ToString
     public static class Control {
-        private int nj;
-        private int nss;
-        private int ns;
+        private int nroJuniors;
+        private int nroSemiSeniors;
+        private int nroSeniors;
     }
 
     @Getter

@@ -21,8 +21,8 @@ public class Utils {
         // Distribución Chi²
         ChiSquaredDistribution chi = new ChiSquaredDistribution(df);
 
-        // Aleatorio uniforme entre 0 y 0.665748
-        double r = Math.random() * 0.665748;
+        // Aleatorio uniforme entre 0 y 0.465748
+        double r = Math.random() * 0.465748;
 
         // Inversa de la CDF
 
@@ -49,9 +49,10 @@ public class Utils {
         return dist.inverseCumulativeProbability(r) + loc_param;
     }
 
-    public static int getMenorTps(LocalDateTime[] tps) {
-        int indice = 0;
+    public static Integer getMenorTps(LocalDateTime[] tps) {
+        Integer indice = null;
         for (int i = 0; i < tps.length; i++) {
+            indice = 0;
             if (tps[indice] != null) {
                 if (tps[i] == null || tps[i].isBefore(tps[indice])) {
                     indice = i;

@@ -52,23 +52,23 @@ public class Main {
         // Loop principal
         while (variables.getT().isBefore(tiempoFinal)) {
             iteraciones++;
-            int i = getMenorTps(variables.getEstado().getTpsJr());
-            int j = getMenorTps(variables.getEstado().getTpsSsr());
-            int k = getMenorTps(variables.getEstado().getTpsSr());
+            Integer i = getMenorTps(variables.getEstado().getTpsJr());
+            Integer j = getMenorTps(variables.getEstado().getTpsSsr());
+            Integer k = getMenorTps(variables.getEstado().getTpsSr());
 
             variables.setI(i);
             variables.setJ(j);
             variables.setK(k);
 
-            if (Objects.nonNull(variables.getEstado().getTpsJr()[i]) &&
+            if (Objects.nonNull(i) && Objects.nonNull(variables.getEstado().getTpsJr()[i]) && Objects.nonNull(j) &&
                 Objects.nonNull(variables.getEstado().getTpsSsr()[j]) &&
                 (variables.getEstado().getTpsJr()[i].isBefore(variables.getEstado().getTpsSsr()[j]) ||
                  variables.getEstado().getTpsJr()[i].equals(variables.getEstado().getTpsSsr()[j]))) {
-                if (Objects.nonNull(variables.getEstado().getTpsJr()[i]) &&
+                if (Objects.nonNull(i) && Objects.nonNull(variables.getEstado().getTpsJr()[i]) && Objects.nonNull(k) &&
                     Objects.nonNull(variables.getEstado().getTpsSr()[k]) &&
                     (variables.getEstado().getTpsJr()[i].isBefore(variables.getEstado().getTpsSsr()[j]) ||
                      variables.getEstado().getTpsJr()[i].equals(variables.getEstado().getTpsSr()[k]))) {
-                    if (Objects.nonNull(variables.getEstado().getTpsJr()[i]) &&
+                    if (Objects.nonNull(i) && Objects.nonNull(variables.getEstado().getTpsJr()[i]) &&
                         (variables.getEstado().getTpsJr()[i].isBefore(variables.getTpll()) ||
                          variables.getEstado().getTpsJr()[i].equals(variables.getTpll()))) {
                         // Salida Junior
@@ -76,7 +76,7 @@ public class Main {
                     } else {
                         procesarLlegada(variables);
                     }
-                } else if (Objects.nonNull(variables.getEstado().getTpsSsr()[j]) &&
+                } else if (Objects.nonNull(j) && Objects.nonNull(variables.getEstado().getTpsSsr()[j]) &&
                            (variables.getEstado().getTpsSsr()[j].isBefore(variables.getTpll()) ||
                             variables.getEstado().getTpsSsr()[j].equals(variables.getTpll()))) {
                     // salida ssr
@@ -85,18 +85,18 @@ public class Main {
                     procesarLlegada(variables);
                 }
 
-            } else if (Objects.nonNull(variables.getEstado().getTpsSsr()[j]) &&
+            } else if (Objects.nonNull(j) && Objects.nonNull(k) && Objects.nonNull(variables.getEstado().getTpsSsr()[j]) &&
                        Objects.nonNull(variables.getEstado().getTpsSr()[k]) &&
                        (variables.getEstado().getTpsSsr()[j].isBefore(variables.getEstado().getTpsSr()[k]) ||
                         variables.getEstado().getTpsSsr()[j].equals(variables.getEstado().getTpsSr()[k]))) {
-                if (Objects.nonNull(variables.getEstado().getTpsSsr()[j]) &&
+                if (Objects.nonNull(j) && Objects.nonNull(variables.getEstado().getTpsSsr()[j]) &&
                     (variables.getEstado().getTpsSsr()[j].isBefore(variables.getTpll()))) {
                     // salida ssr
                     procesarSalidaSemiSenior(variables, j);
                 } else {
                     procesarLlegada(variables);
                 }
-            } else if (Objects.nonNull(variables.getEstado().getTpsSr()[k]) &&
+            } else if (Objects.nonNull(k) && Objects.nonNull(variables.getEstado().getTpsSr()[k]) &&
                        (variables.getEstado().getTpsSr()[k].isBefore(variables.getTpll()) ||
                         variables.getEstado().getTpsSr()[k].equals(variables.getTpll()))) {
                 // salida senior
@@ -105,25 +105,48 @@ public class Main {
                 // llegada
                 procesarLlegada(variables);
             }
-
-            LOGGER.info(variables.getEstado().toString());
         }
 
-        // Resultados finales (placeholders porque en tu código Python estaban incompletos)
-        LOGGER.info("\n=== Resultados ===");
-        LOGGER.info("Iteraciones: {}", iteraciones);
-        LOGGER.info("Fecha de inicio: {}", "2025-01-01T9:00:00");
-        LOGGER.info("Fecha de finalizacion: {}", variables.getT().toString());
+        StringBuilder sb = new StringBuilder();
 
+        sb.append("=== Resultados === \n ");
+        sb.append("Iteraciones: ").append(iteraciones).append(" \n ");
+        sb.append("Control: ").append(variables.getControl().toString()).append(" \n ");
+        sb.append("Fecha de inicio: ").append("2025-01-01T9:00:00").append(" \n ");
+        sb.append("Fecha de finalizacion: ").append(variables.getT().toString()).append(" \n ");
+
+        // Agrego CTR
         variables.getResultado().calculateCTR().forEach((etiqueta, valor) -> {
-            LOGGER.info("{} -> {}", etiqueta, valor);
+            sb.append(etiqueta).append("=").append(valor).append(" \n ");
         });
+
+        // Agrego DTC
         variables.getResultado().calculateDTC().forEach((etiqueta, valor) -> {
-            LOGGER.info("{} -> {}", etiqueta, valor);
+            sb.append(etiqueta).append("=").append(valor).append(" \n ");
         });
+
+        // Agrego TPEC
         variables.getResultado().calculateTPEC().forEach((etiqueta, valor) -> {
-            LOGGER.info("{} -> {}", etiqueta, valor);
+            sb.append(etiqueta).append("=").append(valor).append(" \n ");
         });
+
+        // Imprimo en una sola línea
+        LOGGER.info(sb.toString());
+                LOGGER.info("\n=== Resultados ===");
+                LOGGER.info("Iteraciones: {}", iteraciones);
+                LOGGER.info("{}", variables.getControl().toString());
+                LOGGER.info("Fecha de inicio: {}", "2025-01-01T9:00:00");
+                LOGGER.info("Fecha de finalizacion: {}", variables.getT().toString());
+
+                variables.getResultado().calculateCTR().forEach((etiqueta, valor) -> {
+                    LOGGER.info("{} -> {}", etiqueta, valor);
+                });
+                variables.getResultado().calculateDTC().forEach((etiqueta, valor) -> {
+                    LOGGER.info("{} -> {}", etiqueta, valor);
+                });
+                variables.getResultado().calculateTPEC().forEach((etiqueta, valor) -> {
+                    LOGGER.info("{} -> {}", etiqueta, valor);
+                });
 
 
         scanner.close();
@@ -141,7 +164,12 @@ public class Main {
 
         if (r < 0.2) {
             //criticidad baja
-            var.getResultado().addStsB(tAux, tpllAux, var.getEstado().getCtb());
+
+            var.getResultado().addStsB(tpllAux, tAux, var.getEstado().getCtb());
+            var.getResultado().addStsA(tpllAux, tAux, var.getEstado().getCta());
+            var.getResultado().addStsM(tpllAux, tAux, var.getEstado().getCtm());
+            var.getResultado().addStsC(tpllAux, tAux, var.getEstado().getCtc());
+
             var.getEstado().bajosEncoladosPlus();
             var.getEstado().setCtb(var.getEstado().getCtb() + 1);
             var.getResultado().setCttb(var.getResultado().getCttb() + 1);
@@ -179,8 +207,13 @@ public class Main {
                 }
             }
         } else if (r < 0.5) {
+
             //medios
-            var.getResultado().addStsM(tAux, tpllAux, var.getEstado().getCtm());
+            var.getResultado().addStsB(tpllAux, tAux, var.getEstado().getCtb());
+            var.getResultado().addStsA(tpllAux, tAux, var.getEstado().getCta());
+            var.getResultado().addStsM(tpllAux, tAux, var.getEstado().getCtm());
+            var.getResultado().addStsC(tpllAux, tAux, var.getEstado().getCtc());
+
             var.getEstado().mediosEncoladosPlus();
             var.getResultado().setCttm(var.getResultado().getCttm() + 1);
             var.getEstado().setCtm(var.getEstado().getCtm() + 1);
@@ -212,14 +245,18 @@ public class Main {
                         ta = ta * 0.7;
                         updateSeniorTps(var, indexSenior, ta);
                         var.getResultado().addStaM(ta);
-
                     }
 
                 }
             }
         } else if (r < 0.8) {
             // llega alto
-            var.getResultado().addStsA(tAux, tpllAux, var.getEstado().getCta());
+
+            var.getResultado().addStsB(tpllAux, tAux, var.getEstado().getCtb());
+            var.getResultado().addStsA(tpllAux, tAux, var.getEstado().getCta());
+            var.getResultado().addStsM(tpllAux, tAux, var.getEstado().getCtm());
+            var.getResultado().addStsC(tpllAux, tAux, var.getEstado().getCtc());
+
             var.getEstado().altosEncoladosPlus();
             var.getResultado().setCtta(var.getResultado().getCtta() + 1);
             var.getEstado().setCta(var.getEstado().getCta() + 1);
@@ -246,7 +283,12 @@ public class Main {
             }
         } else {
             //llega critico
-            var.getResultado().addStsC(tAux, tpllAux, var.getEstado().getCtc());
+
+            var.getResultado().addStsB(tpllAux, tAux, var.getEstado().getCtb());
+            var.getResultado().addStsA(tpllAux, tAux, var.getEstado().getCta());
+            var.getResultado().addStsM(tpllAux, tAux, var.getEstado().getCtm());
+            var.getResultado().addStsC(tpllAux, tAux, var.getEstado().getCtc());
+
             var.getEstado().criticosEncoladosPlus();
             var.getResultado().setCttc(var.getResultado().getCttc() + 1);
             var.getEstado().setCtc(var.getEstado().getCtc() + 1);
@@ -275,10 +317,16 @@ public class Main {
         String ca = var.getEstado().getJuniorAtendiendo()[index];
 
         if (ca.equalsIgnoreCase("M")) {
-            var.getResultado().addStsM(tpsAux, tAux, var.getEstado().getCtm());
-            var.getEstado().setCtm(var.getEstado().getCtm() - 1);
-        } else if (ca.equalsIgnoreCase("B")){
             var.getResultado().addStsB(tpsAux, tAux, var.getEstado().getCtb());
+            var.getResultado().addStsM(tpsAux, tAux, var.getEstado().getCtm());
+            var.getResultado().addStsA(tpsAux, tAux, var.getEstado().getCta());
+            var.getResultado().addStsC(tpsAux, tAux, var.getEstado().getCtc());
+            var.getEstado().setCtm(var.getEstado().getCtm() - 1);
+        } else if (ca.equalsIgnoreCase("B")) {
+            var.getResultado().addStsB(tpsAux, tAux, var.getEstado().getCtb());
+            var.getResultado().addStsM(tpsAux, tAux, var.getEstado().getCtm());
+            var.getResultado().addStsA(tpsAux, tAux, var.getEstado().getCta());
+            var.getResultado().addStsC(tpsAux, tAux, var.getEstado().getCtc());
             var.getEstado().setCtb(var.getEstado().getCtb() - 1);
         }
 
@@ -289,38 +337,47 @@ public class Main {
             var.getEstado().mediosEncoladosMinus();
             double ta = getTA();
             ta = ta * 1.5;
-            updateJuniorTps(var, var.getI(), ta);
+            updateJuniorTps(var, index, ta);
             var.getResultado().addStaM(ta);
         } else if (var.getEstado().getBajosEncolados() >= 1) {
             var.getEstado().getJuniorAtendiendo()[index] = "B";
             var.getEstado().bajosEncoladosMinus();
             double ta = getTA();
             ta = ta * 1.5;
-            updateJuniorTps(var, var.getI(), ta);
+            updateJuniorTps(var, index, ta);
             var.getResultado().addStaB(ta);
         } else {
-            var.getEstado().getTpsJr()[var.getI()] = null;
+            var.getEstado().getTpsJr()[index] = null;
         }
     }
 
     private static void procesarSalidaSemiSenior(Variables var, Integer index) {
         LocalDateTime tAux = var.getT();
-        LocalDateTime tpsAux = var.getEstado().getTpsSsr()[var.getJ()];
+        LocalDateTime tpsAux = var.getEstado().getTpsSsr()[index];
 
-        var.setT(var.getEstado().getTpsSsr()[var.getJ()]);
+        var.setT(var.getEstado().getTpsSsr()[index]);
         var.getResultado().setCrSsr(var.getResultado().getCrSsr() + 1);
 
         String ca = var.getEstado().getSemiSeniorAtendiendo()[index];
         var.getEstado().getSemiSeniorAtendiendo()[index] = "";
 
         if (ca.equalsIgnoreCase("A")) {
+            var.getResultado().addStsB(tpsAux, tAux, var.getEstado().getCtb());
+            var.getResultado().addStsM(tpsAux, tAux, var.getEstado().getCtm());
             var.getResultado().addStsA(tpsAux, tAux, var.getEstado().getCta());
+            var.getResultado().addStsC(tpsAux, tAux, var.getEstado().getCtc());
             var.getEstado().setCta(var.getEstado().getCta() - 1);
         } else if (ca.equalsIgnoreCase("M")) {
+            var.getResultado().addStsB(tpsAux, tAux, var.getEstado().getCtb());
             var.getResultado().addStsM(tpsAux, tAux, var.getEstado().getCtm());
+            var.getResultado().addStsA(tpsAux, tAux, var.getEstado().getCta());
+            var.getResultado().addStsC(tpsAux, tAux, var.getEstado().getCtc());
             var.getEstado().setCtm(var.getEstado().getCtm() - 1);
         } else if (ca.equalsIgnoreCase("B")) {
             var.getResultado().addStsB(tpsAux, tAux, var.getEstado().getCtb());
+            var.getResultado().addStsM(tpsAux, tAux, var.getEstado().getCtm());
+            var.getResultado().addStsA(tpsAux, tAux, var.getEstado().getCta());
+            var.getResultado().addStsC(tpsAux, tAux, var.getEstado().getCtc());
             var.getEstado().setCtb(var.getEstado().getCtb() - 1);
         }
 
@@ -329,47 +386,59 @@ public class Main {
             var.getEstado().getSemiSeniorAtendiendo()[index] = "A";
             var.getEstado().altosEncoladosMinus();
             double ta = getTA();
-            updateSemiSeniorTps(var, var.getJ(), ta);
+            updateSemiSeniorTps(var, index, ta);
             var.getResultado().addStaA(ta);
         } else if (var.getEstado().getMediosEncolados() >= 1) {
             var.getEstado().getSemiSeniorAtendiendo()[index] = "M";
             var.getEstado().mediosEncoladosMinus();
             double ta = getTA();
-            updateSemiSeniorTps(var, var.getJ(), ta);
+            updateSemiSeniorTps(var, index, ta);
             var.getResultado().addStaM(ta);
         } else if (var.getEstado().getBajosEncolados() >= 1) {
             var.getEstado().getSemiSeniorAtendiendo()[index] = "B";
             var.getEstado().bajosEncoladosMinus();
             double ta = getTA();
-            updateSemiSeniorTps(var, var.getJ(), ta);
+            updateSemiSeniorTps(var, index, ta);
             var.getResultado().addStaB(ta);
         } else {
-            var.getEstado().getTpsSsr()[var.getJ()] = null;
+            var.getEstado().getTpsSsr()[index] = null;
         }
     }
 
     private static void procesarSalidaSenior(Variables var, Integer index) {
         LocalDateTime tAux = var.getT();
-        LocalDateTime tpsAux = var.getEstado().getTpsSr()[var.getK()];
+        LocalDateTime tpsAux = var.getEstado().getTpsSr()[index];
 
-        var.setT(var.getEstado().getTpsSr()[var.getK()]);
+        var.setT(var.getEstado().getTpsSr()[index]);
         var.getResultado().setCrSr(var.getResultado().getCrSr() + 1);
 
         String ca = var.getEstado().getSeniorAtendiendo()[index];
         var.getEstado().getSeniorAtendiendo()[index] = "";
 
         if (ca.equalsIgnoreCase("C")) {
+            var.getResultado().addStsB(tpsAux, tAux, var.getEstado().getCtb());
+            var.getResultado().addStsM(tpsAux, tAux, var.getEstado().getCtm());
+            var.getResultado().addStsA(tpsAux, tAux, var.getEstado().getCta());
             var.getResultado().addStsC(tpsAux, tAux, var.getEstado().getCtc());
             var.getEstado().setCtc(var.getEstado().getCtc() - 1);
         } else if (ca.equalsIgnoreCase("A")) {
+            var.getResultado().addStsB(tpsAux, tAux, var.getEstado().getCtb());
+            var.getResultado().addStsM(tpsAux, tAux, var.getEstado().getCtm());
             var.getResultado().addStsA(tpsAux, tAux, var.getEstado().getCta());
+            var.getResultado().addStsC(tpsAux, tAux, var.getEstado().getCtc());
             var.getEstado().setCta(var.getEstado().getCta() - 1);
         } else if (ca.equalsIgnoreCase("M")) {
+            var.getResultado().addStsB(tpsAux, tAux, var.getEstado().getCtb());
             var.getResultado().addStsM(tpsAux, tAux, var.getEstado().getCtm());
+            var.getResultado().addStsA(tpsAux, tAux, var.getEstado().getCta());
+            var.getResultado().addStsC(tpsAux, tAux, var.getEstado().getCtc());
             var.getEstado().setCtm(var.getEstado().getCtm() - 1);
         } else {
             var.getResultado().setCrSr(var.getResultado().getCrSr() + 1);
             var.getResultado().addStsB(tpsAux, tAux, var.getEstado().getCtb());
+            var.getResultado().addStsM(tpsAux, tAux, var.getEstado().getCtm());
+            var.getResultado().addStsA(tpsAux, tAux, var.getEstado().getCta());
+            var.getResultado().addStsC(tpsAux, tAux, var.getEstado().getCtc());
             var.getEstado().setCtb(var.getEstado().getCtb() - 2);
         }
 
@@ -379,7 +448,7 @@ public class Main {
             var.getEstado().criticosEncoladosMinus();
             double ta = getTA();
             ta = ta * 0.7;
-            updateSeniorTps(var, var.getK(), ta);
+            updateSeniorTps(var, index, ta);
             var.getResultado().addStaC(ta);
         } else if (var.getEstado().getAltosEncolados() >= 1) {
             var.getEstado().getSeniorAtendiendo()[index] = "A";
@@ -393,7 +462,7 @@ public class Main {
             var.getEstado().mediosEncoladosMinus();
             double ta = getTA();
             ta = ta * 0.7;
-            updateSeniorTps(var, var.getK(), ta);
+            updateSeniorTps(var, index, ta);
             var.getResultado().addStaM(ta);
         } else if (var.getEstado().getBajosEncolados() >= 2) {
             var.getEstado().getSeniorAtendiendo()[index] = "B";
@@ -402,10 +471,10 @@ public class Main {
             double ta = getTA();
             double ta2 = getTA();
             ta = (ta + ta2) * 0.7;
-            updateSeniorTps(var, var.getK(), ta);
+            updateSeniorTps(var, index, ta);
             var.getResultado().addStaB(ta);
         } else {
-            var.getEstado().getTpsSr()[var.getK()] = null;
+            var.getEstado().getTpsSr()[index] = null;
         }
     }
 
